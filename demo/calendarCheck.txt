@@ -1,0 +1,25 @@
+NonWorkingPeriodController 
+-> Usare una transactional in un controller 
+è sempre un po' rishioso anche perchè ho visto che hai messo giustamente in application.properties 
+spring.jpa.open-in-view=false... io quindi ti consiglierei di fare un metodo a parte nel service
+
+In generale ti consiglierei di non esporre le entity nelle Api, ma di usare i Dto... anche se mi rendo 
+conto che possa essere un refactor un po' pesante... 
+NonWorkingPeriodsRequestBodyDTO -> non dovresti usare liste di Entity nei Dto :) perdono tutto il 
+loro senso :)
+
+NonWorkingPeriodRepository
+-> @Modifying ... perchè?
+
+AbstractCalendar -> Ti consiglierei di usare un embedable a livello di db  
+e secondo me il J ti rompe le palle se chiami una classe concreta abstract ;)
+PersonalNonWorkingCalendar -> nonWorkingPeriod ho visto che hai specificato FetchType.EAGER 
+c'è qualche motivo particolare per cui non usi una EntityGraph per esempio o un'altro metodo
+per evitare una N+1 query.
+
+perchè hai usato sia org.springframework.transaction.annotation.Transactional che 
+javax.transaction.Transactional ? Tra l'altro ho visto che javax.transaction.Transactional solo nei controller
+
+JTK:
+
+JwtUtils ha un metodo morto getUserFromToken che ha un paio di TODO
