@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: "test"
+
+---
+
+spring:
+  application:
+    name: "test-prod"
+  config:
+    activate:
+      on-profile: "prod"
