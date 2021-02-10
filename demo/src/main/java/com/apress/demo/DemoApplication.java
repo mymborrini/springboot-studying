@@ -1,12 +1,18 @@
 package com.apress.demo;
 
-import java.util.logging.Logger;
+import com.apress.demo.configurationProperties.MyAppProperties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.boot.CommandLineRunner;
 
 /**
  * @SpringBootApplication annotation is equivalent to
@@ -82,6 +88,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 @SpringBootApplication(exclude = { ActiveMQAutoConfiguration.class, DataSourceAutoConfiguration.class })
 public class DemoApplication {
 
+	public static Logger log = LoggerFactory.getLogger(DemoApplication.class);
+
 	public static void main(String[] args) {
 		/**
 		 * SpringApplication this class provides the bootstrap for the Spring
@@ -96,6 +104,21 @@ public class DemoApplication {
 		// app.setBanner(new Banner());
 		app.run(args);
 
+	}
+
+	@Value("${myapp.server-ip}")
+	String serverIp;
+
+	@Autowired
+	MyAppProperties props;
+
+	@Bean
+	CommandLineRunner values() {
+		return args -> {
+			log.info(" > The Server IP is: " + serverIp);
+			log.info(" > App name: " + props.getName());
+			log.info(" > App info: " + props.getDescription());
+		};
 	}
 
 	/**
