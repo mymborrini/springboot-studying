@@ -24,6 +24,7 @@ public class WebClientDemoApplication {
 	@Bean
 	public CommandLineRunner process(ToDoRestClient client) {
 		return args -> {
+
 			Iterable<ToDo> toDos = client.findAll();
 			assert toDos != null;
 			toDos.forEach(toDo -> log.info(toDo.toString()));
@@ -40,9 +41,8 @@ public class WebClientDemoApplication {
 			assert completed.isCompleted();
 			log.info(completed.toString());
 
-			client.delete(newToDo.getId());
-			assert client.findById(newToDo.getId()) == null;
-
+			// client.delete(newToDo.getId());
+			// assert client.findById(newToDo.getId()) == null;
 		};
 	}
 
