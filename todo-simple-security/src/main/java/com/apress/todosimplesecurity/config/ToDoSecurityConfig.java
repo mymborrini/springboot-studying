@@ -34,22 +34,56 @@ public class ToDoSecurityConfig extends WebSecurityConfigurerAdapter {
   private final Logger LOG = LoggerFactory.getLogger(ToDoSecurityConfig.class);
 
   // Use this to connect to the Directory App
-  private RestTemplateBuilder restTemplateBuilder;
+  private RestTemplate restTemplate;
   private ToDoProperties toDoProperties;
+  private UriComponentsBuilder builder;
 
   /**
    * This helper class makes a REST call to the directory app endpoint
    */
 
   public ToDoSecurityConfig(RestTemplateBuilder restTemplateBuilder, ToDoProperties toDoProperties) {
-    this.restTemplateBuilder = restTemplateBuilder;
     this.toDoProperties = toDoProperties;
+    this.restTemplate = restTemplateBuilder
+        .basicAuthentication(toDoProperties.getUsername(), toDoProperties.getPassword()).build();
   }
 
   @Override
   protected void configure(AuthenticationManagerBuilder auth) throws Exception {
     System.err.println("ci passa 1");
-    auth.userDetailsService(new ToDoUserDetailsService(restTemplateBuilder, toDoProperties));
+    auth.userDetailsService(new UserDetailsService() {
+
+      @Override
+      public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        try {
+          builder = UriComponentsBuilder.fromUriString(toDoProperties.getFindByEmailUri()).queryParam("email",
+              username);
+
+          LOG.info("Querying: " + builder.toUriString());
+          ResponseEntity<EntityModel<Person>> responseEntity = restTemplate.exchange(
+              RequestEntity.get(URI.create(builder.toUriString())).accept(MediaTypes.HAL_JSON).build(),
+              new ParameterizedTypeReference<EntityModel<Person>>() {
+              });
+
+          if (responseEntity.getStatusCode() == HttpStatus.OK) {
+            EntityModel<Person> resource = responseEntity.getBody();
+            Person person = resource.getContent();
+
+            PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+            String password = encoder.encode(person.getPassword());
+
+            System.err.println(person.getEmail());
+            return User.withUsername(person.getEmail()).accountLocked(!person.isEnabled()).password(password)
+                .roles(person.getRole()).build();
+          }
+
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+        throw new UsernameNotFoundException(username);
+      }
+
+    });
   }
 
   @Override
